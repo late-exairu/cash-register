@@ -24,7 +24,7 @@ const cashDrawerDisplay = document.querySelector(
   "#cash-drawer-display",
 ) as HTMLDivElement;
 
-const updateTotalCid = () => {
+const getTotalCid = () => {
   console.log({ cid });
 
   return (
@@ -36,99 +36,61 @@ const updateTotalCid = () => {
 
 const handlePurchase = (e: Event) => {
   e.preventDefault();
-  let status = "";
   const cashValue = Number(cash.value);
-  const changeRequired = cashValue - price;
-  const changeAmount = 0;
 
   if (cashValue < price) {
     alert("Customer does not have enough money to purchase the item");
+    cash.value = "";
     return;
-  } else if (cashValue === price) {
-    status = "Status: CLOSED";
+  }
+
+  if (cashValue === price) {
     changeDue.innerHTML = `<p>No change due - customer paid with exact cash</p>`;
-    return;
-  } else if (totalCid < cashValue - price) {
-    status = "Status: INSUFFICIENT_FUNDS";
-    changeDue.innerHTML = `<p>${status}</p>`;
+    cash.value = "";
     return;
   }
 
-  status = "Status: OPEN";
-  changeDue.innerHTML = `<p>${status}</p>`;
-  const reverseCid = cid.reverse();
+  if (totalCid < cashValue - price) {
+    changeDue.innerHTML = `<p>Status: INSUFFICIENT_FUNDS</p>`;
+    return;
+  }
+
+  changeDue.innerHTML = `<p>Status: OPEN</p>`;
+  const reverseCid = [...cid].reverse();
   const change = (cashValue * 100 - price * 100) / 100;
-  let isChangeAvailable = false;
-
   let changeLeft = change;
-
-  for (let i = 0; i < reverseCid.length; i++) {
-    const value = reverseCid[i][1];
-    const nomination = nominations[i];
-    const nominationTotal = Number(value);
-    let coinsNum = 0;
-
-    if (changeLeft >= nomination && nominationTotal > 0) {
-      if (changeLeft / nomination > nominationTotal / nomination) {
-        coinsNum = Math.floor(nominationTotal / nomination);
-      } else {
-        coinsNum = Math.floor(changeLeft / nomination);
-      }
-      const nominationTotalInCents = coinsNum * (nomination * 100);
-
-      changeLeft = Math.round(changeLeft * 100 - nominationTotalInCents) / 100;
-
-      if (changeLeft === 0) {
-        isChangeAvailable = true;
-      }
-    }
-  }
-
-  if (!isChangeAvailable) {
-    status = "Status: INSUFFICIENT_FUNDS";
-    changeDue.innerHTML = `<p>${status}</p>`;
-    return;
-  }
-
-  changeLeft = change;
 
   for (let i = 0; i < reverseCid.length; i++) {
     const [name, value] = reverseCid[i];
     const nomination = nominations[i];
     const nominationTotal = Number(value);
-    let coinsNum = 0;
 
-    if (changeLeft >= nomination && nominationTotal > 0) {
-      if (changeLeft / nomination > nominationTotal / nomination) {
-        coinsNum = Math.floor(nominationTotal / nomination);
-      } else {
-        coinsNum = Math.floor(changeLeft / nomination);
-      }
-      const nominationTotalInCents = coinsNum * (nomination * 100);
-
+    if (changeLeft >= nomination) {
+      const coinsNum = Math.floor(
+        Math.min(changeLeft / nomination, nominationTotal / nomination),
+      );
+      const nominationTotalInPennies = coinsNum * (nomination * 100);
       reverseCid[i][1] =
-        Math.round(nominationTotal * 100 - nominationTotalInCents) / 100;
-      changeLeft = Math.round(changeLeft * 100 - nominationTotalInCents) / 100;
+        Math.round(nominationTotal * 100 - nominationTotalInPennies) / 100;
+      changeLeft =
+        Math.round(changeLeft * 100 - nominationTotalInPennies) / 100;
       changeDue.innerHTML += `<p>${name}: $${coinsNum * nomination}</p>`;
-
-      console.log({ changeLeft });
-      console.log(reverseCid[i][1]);
 
       if (changeLeft === 0) {
         break;
       }
     }
+
+    if (changeLeft > 0 && i === reverseCid.length - 1) {
+      changeDue.innerHTML = `<p>Status: INSUFFICIENT_FUNDS</p>`;
+      return;
+    }
   }
 
   cash.value = "";
-  cid = reverseCid.reverse();
-  updateTotalCid();
+  cid = [...reverseCid].reverse();
+  getTotalCid();
   updateCashDrawerDisplay();
-  console.log({ totalCid });
-};
-
-const isChangeAvailable = () => {
-  return true;
 };
 
 const updateCashDrawerDisplay = () => {
@@ -140,7 +102,7 @@ const updateCashDrawerDisplay = () => {
   });
 };
 
-let totalCid = updateTotalCid();
+let totalCid = getTotalCid();
 priceScreen.innerHTML = `Total: $${price}`;
 updateCashDrawerDisplay();
 form?.addEventListener("submit", handlePurchase);
