@@ -69,7 +69,7 @@ const handlePurchase = (e: Event) => {
       const coinsNum = Math.floor(
         Math.min(changeLeft / nomination, nominationTotal / nomination),
       );
-      const nominationTotalInPennies = coinsNum * (nomination * 100);
+      const nominationTotalInPennies = coinsNum * nomination * 100;
       reverseCid[i][1] =
         Math.round(nominationTotal * 100 - nominationTotalInPennies) / 100;
       changeLeft =
