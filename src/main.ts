@@ -11,6 +11,8 @@ let cid = [
   ["ONE HUNDRED", 100],
 ];
 
+const nominations = [100, 20, 10, 5, 1, 0.25, 0.1, 0.05, 0.01];
+
 const purchaseBtn = document.querySelector(
   "#purchase-btn",
 ) as HTMLButtonElement;
@@ -23,6 +25,8 @@ const cashDrawerDisplay = document.querySelector(
 ) as HTMLDivElement;
 
 const updateTotalCid = () => {
+  console.log({ cid });
+
   return (
     cid.reduce((acc, curr) => {
       return acc + Number(curr[1]) * 100;
@@ -30,13 +34,12 @@ const updateTotalCid = () => {
   );
 };
 
-let totalCid = updateTotalCid();
-const nominations = [100, 20, 10, 5, 1, 0.25, 0.1, 0.05, 0.01];
-
 const handlePurchase = (e: Event) => {
   e.preventDefault();
   let status = "";
   const cashValue = Number(cash.value);
+  const changeRequired = cashValue - price;
+  const changeAmount = 0;
 
   if (cashValue < price) {
     alert("Customer does not have enough money to purchase the item");
@@ -55,25 +58,57 @@ const handlePurchase = (e: Event) => {
   changeDue.innerHTML = `<p>${status}</p>`;
   const reverseCid = cid.reverse();
   const change = (cashValue * 100 - price * 100) / 100;
+  let isChangeAvailable = false;
 
   let changeLeft = change;
+
+  for (let i = 0; i < reverseCid.length; i++) {
+    const value = reverseCid[i][1];
+    const nomination = nominations[i];
+    const nominationTotal = Number(value);
+    let coinsNum = 0;
+
+    if (changeLeft >= nomination && nominationTotal > 0) {
+      if (changeLeft / nomination > nominationTotal / nomination) {
+        coinsNum = Math.floor(nominationTotal / nomination);
+      } else {
+        coinsNum = Math.floor(changeLeft / nomination);
+      }
+      const nominationTotalInCents = coinsNum * (nomination * 100);
+
+      changeLeft = Math.round(changeLeft * 100 - nominationTotalInCents) / 100;
+
+      if (changeLeft === 0) {
+        isChangeAvailable = true;
+      }
+    }
+  }
+
+  if (!isChangeAvailable) {
+    status = "Status: INSUFFICIENT_FUNDS";
+    changeDue.innerHTML = `<p>${status}</p>`;
+    return;
+  }
+
+  changeLeft = change;
+
   for (let i = 0; i < reverseCid.length; i++) {
     const [name, value] = reverseCid[i];
     const nomination = nominations[i];
     const nominationTotal = Number(value);
     let coinsNum = 0;
 
-    if (changeLeft >= nomination) {
+    if (changeLeft >= nomination && nominationTotal > 0) {
       if (changeLeft / nomination > nominationTotal / nomination) {
         coinsNum = Math.floor(nominationTotal / nomination);
       } else {
         coinsNum = Math.floor(changeLeft / nomination);
       }
+      const nominationTotalInCents = coinsNum * (nomination * 100);
 
       reverseCid[i][1] =
-        Math.round(nominationTotal * 100 - coinsNum * (nomination * 100)) / 100;
-      changeLeft =
-        Math.round(changeLeft * 100 - coinsNum * (nomination * 100)) / 100;
+        Math.round(nominationTotal * 100 - nominationTotalInCents) / 100;
+      changeLeft = Math.round(changeLeft * 100 - nominationTotalInCents) / 100;
       changeDue.innerHTML += `<p>${name}: $${coinsNum * nomination}</p>`;
 
       console.log({ changeLeft });
@@ -89,8 +124,11 @@ const handlePurchase = (e: Event) => {
   cid = reverseCid.reverse();
   updateTotalCid();
   updateCashDrawerDisplay();
-  console.log({ cid });
   console.log({ totalCid });
+};
+
+const isChangeAvailable = () => {
+  return true;
 };
 
 const updateCashDrawerDisplay = () => {
@@ -102,6 +140,7 @@ const updateCashDrawerDisplay = () => {
   });
 };
 
+let totalCid = updateTotalCid();
 priceScreen.innerHTML = `Total: $${price}`;
 updateCashDrawerDisplay();
 form?.addEventListener("submit", handlePurchase);
