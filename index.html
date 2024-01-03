@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cash Register</title>
+    <script type="module" crossorigin src="/cash-register/assets/index-retO8yhR.js"></script>
+    <link rel="stylesheet" crossorigin href="/cash-register/assets/index-IE3m3E9H.css">
+  </head>
+
+  <body class="bg-slate-800">
+    <div class="flex min-h-dvh items-center">
+      <div class="container mx-auto px-5">
+        <div class="mx-auto max-w-96">
+          <h1 class="mb-5 text-center text-3xl font-bold">Cash Register</h1>
+
+          <div id="change-due" class="my-5"></div>
+
+          <div class="my-5">
+            <form id="form" class="flex gap-3 md:gap-4">
+              <input
+                type="number"
+                id="cash"
+                class="w-full rounded-md border border-gray-400 p-2 text-slate-800"
+                placeholder="Enter cash from customer:"
+                value=""
+                autofocus
+              />
+
+              <button
+                type="submit"
+                id="purchase-btn"
+                class="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+              >
+                Purchase
+              </button>
+            </form>
+
+            <div class="mt-5">
+              <p
+                id="price-screen"
+                class="mx-auto my-5 w-60 rounded-md bg-slate-600 text-center text-xl font-bold"
+              ></p>
+
+              <div
+                id="cash-drawer-display"
+                class="rounded-md bg-slate-600 p-3"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
